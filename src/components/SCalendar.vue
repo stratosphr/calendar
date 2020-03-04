@@ -2,13 +2,14 @@
   <div>
     <div style="position: relative">
       <v-calendar
+          :end="end.format('YYYY-MM-DD')"
           :interval-count="24 * 60 / intervalMinutes"
           :interval-height="intervalHeight"
           :interval-minutes="intervalMinutes"
           :short-intervals="false"
-          :weekdays="[1, 2, 3, 4, 5, 6, 0]"
+          :start="start.format('YYYY-MM-DD')"
           locale="fr"
-          type="week"
+          type="custom-daily"
       >
       </v-calendar>
     </div>
@@ -16,6 +17,8 @@
 </template>
 
 <script>
+	import moment from 'moment'
+
 	export default {
 		name: 's-calendar',
 
@@ -23,7 +26,21 @@
 			intervalHeight: 30,
 			intervalMinutes: 30,
 			intervalWidth: 60
-		})
+		}),
+
+		created() {
+			moment.locale('fr')
+		},
+
+		computed: {
+			start() {
+				return moment().weekday() !== 6 ? moment().startOf('week') : moment().endOf('week').add(1, 'days')
+			},
+			end() {
+				return moment(this.start).add(5, 'days')
+			}
+		}
+
 	}
 </script>
 
