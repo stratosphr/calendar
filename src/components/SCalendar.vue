@@ -22,7 +22,7 @@
           >
             <div
                 :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
-                class="red"
+                class="black"
                 style="position: absolute; left: 1px; right: 1px; overflow: hidden"
                 v-for="e in events"
             >
@@ -48,11 +48,10 @@
 
 		data() {
 			return {
-				intervalHeight: 60,
+				intervalHeight: 20,
 				intervalMinutes: 30,
-				intervalWidth: 60,
 				firstInterval: 3,
-				intervalCount: 15,
+				intervalCount: 24,
 				eventsContainers: [
 					{
 						start: '0000-01-01 00:00',
@@ -62,11 +61,11 @@
 				events: [
 					{
 						start: moment('2020-03-04 03:30'),
-						end: moment('2020-03-04 04:00')
+						end: moment('2020-03-04 04:30')
 					},
 					{
-						start: moment('2020-03-04 04:00'),
-						end: moment('2020-03-04 04:20')
+						start: moment('2020-03-04 04:30'),
+						end: moment('2020-03-04 05:48')
 					}
 				]
 			}
@@ -98,7 +97,7 @@
 					y: this.minutesToPixels(moment.duration({
 						hours: event.start.hours(),
 						minutes: event.start.minutes()
-					}).asMinutes() - this.firstInterval * this.intervalMinutes),
+					}).asMinutes() - this.firstInterval * this.intervalMinutes + 1),
 					h: this.minutesToPixels(moment.duration(moment(event.end).diff(event.start)).asMinutes()) - 1
 				}
 			},
