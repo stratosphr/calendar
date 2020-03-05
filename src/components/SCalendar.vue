@@ -11,21 +11,30 @@
           :interval-minutes="intervalMinutes"
           :short-intervals="false"
           :start="start.format('YYYY-MM-DD')"
-          event-color="blue"
+          event-color="transparent"
           locale="fr"
           type="custom-daily"
       >
         <template #event="{event}">
           <div
-              class="black"
-              style="position: relative; opacity: 0.7"
+              class="event-container"
+              style="position: relative; width: 100%; opacity: 0.7"
           >
+
+            <!-- EVENTS -->
             <div
                 :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
-                class="black"
-                style="position: absolute; left: 1px; right: 1px; overflow: hidden"
+                class="black event"
+                style="position: absolute; left: 0; width: 100%; overflow: hidden"
                 v-for="e in events[date(event.start)]"
             >
+              <div
+                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
+                  class="blue darken-2"
+              >
+                <v-spacer />
+                <p>Hello</p>
+              </div>
               <div>
                 Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
               </div>
@@ -33,6 +42,7 @@
                 End: {{e.end.format('YYYY-MM-DD HH:mm')}}
               </div>
             </div>
+
           </div>
         </template>
       </v-calendar>
@@ -42,6 +52,7 @@
 
 <script>
 	import moment from 'moment'
+	import 'jquery-ui-dist/jquery-ui'
 
 	export default {
 		name: 's-calendar',
@@ -61,18 +72,24 @@
 				events: {
 					'2020-03-04': [
 						{
-							start: moment('2020-03-04 03:30'),
+							start: moment('2020-03-04 01:30'),
 							end: moment('2020-03-04 04:30')
 						},
 						{
-							start: moment('2020-03-04 04:50'),
-							end: moment('2020-03-04 06:34')
+							start: moment('2020-03-04 04:30'),
+							end: moment('2020-03-04 05:30')
 						}
 					],
 					'2020-03-05': [
 						{
 							start: moment('2020-03-05 05:30'),
 							end: moment('2020-03-05 09:48')
+						}
+					],
+					'2020-03-07': [
+						{
+							start: moment('2020-03-05 01:30'),
+							end: moment('2020-03-05 04:23')
 						}
 					]
 				}
@@ -136,6 +153,7 @@
   /*noinspection CssUnusedSymbol*/
   .v-event-timed-container {
     margin-right: 0 !important;
+    margin-top: -1px !important;
   }
 
   /*noinspection CssUnusedSymbol*/
