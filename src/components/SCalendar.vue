@@ -3,11 +3,12 @@
     <div style="position: relative">
       <v-calendar
           :end="end.format('YYYY-MM-DD')"
+          :event-ripple="false"
           :events="eventsContainers"
           :first-interval="firstInterval"
+          :interval-count="intervalCount"
           :interval-height="intervalHeight"
           :interval-minutes="intervalMinutes"
-          :interval-count="intervalCount"
           :short-intervals="false"
           :start="start.format('YYYY-MM-DD')"
           event-color="blue"
