@@ -24,13 +24,13 @@
                 :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
                 class="black"
                 style="position: absolute; left: 1px; right: 1px; overflow: hidden"
-                v-for="e in events"
+                v-for="e in events[date(event.start)]"
             >
               <div>
-                {{e.start}}
+                Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
               </div>
               <div>
-                {{e.end}}
+                End: {{e.end.format('YYYY-MM-DD HH:mm')}}
               </div>
             </div>
           </div>
@@ -58,16 +58,24 @@
 						end: '0000-01-01 00:00'
 					}
 				],
-				events: [
-					{
-						start: moment('2020-03-04 03:30'),
-						end: moment('2020-03-04 04:30')
-					},
-					{
-						start: moment('2020-03-04 04:30'),
-						end: moment('2020-03-04 05:48')
-					}
-				]
+				events: {
+					'2020-03-04': [
+						{
+							start: moment('2020-03-04 03:30'),
+							end: moment('2020-03-04 04:30')
+						},
+						{
+							start: moment('2020-03-04 04:50'),
+							end: moment('2020-03-04 06:34')
+						}
+					],
+					'2020-03-05': [
+						{
+							start: moment('2020-03-05 05:30'),
+							end: moment('2020-03-05 09:48')
+						}
+					]
+				}
 			}
 		},
 
@@ -89,6 +97,9 @@
 		},
 
 		methods: {
+			date(m) {
+				return moment(m).format('YYYY-MM-DD')
+			},
 			minutesToPixels(minutes) {
 				return +(minutes * (this.intervalHeight / this.intervalMinutes)).toFixed(0)
 			},
