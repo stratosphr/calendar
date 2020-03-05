@@ -1,52 +1,55 @@
 <template>
   <div>
-    <div style="position: relative">
-      <v-calendar
-          :end="end.format('YYYY-MM-DD')"
-          :event-ripple="false"
-          :events="eventsContainers"
-          :first-interval="firstInterval"
-          :interval-count="intervalCount"
-          :interval-height="intervalHeight"
-          :interval-minutes="intervalMinutes"
-          :short-intervals="false"
-          :start="start.format('YYYY-MM-DD')"
-          event-color="transparent"
-          locale="fr"
-          type="custom-daily"
-      >
-        <template #event="{event}">
+    <v-calendar
+        :end="end.format('YYYY-MM-DD')"
+        :event-ripple="false"
+        :events="eventsContainers"
+        :first-interval="firstInterval"
+        :interval-count="intervalCount"
+        :interval-height="intervalHeight"
+        :interval-minutes="intervalMinutes"
+        :short-intervals="false"
+        :start="start.format('YYYY-MM-DD')"
+        event-color="transparent"
+        locale="fr"
+        type="custom-daily"
+    >
+      <template #event="{event}">
+        <div
+            class="event-container"
+            style="position: relative; width: 100%"
+        >
+
+          <!-- EVENTS -->
           <div
-              class="event-container"
-              style="position: relative; width: 100%; opacity: 0.7"
+              :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
+              class="blue lighten-1 event"
+              style="position: absolute; left: 0; width: 100%; overflow: hidden"
+              v-for="e in events[date(event.start)]"
           >
-
-            <!-- EVENTS -->
-            <div
-                :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
-                class="black event"
-                style="position: absolute; left: 0; width: 100%; overflow: hidden"
-                v-for="e in events[date(event.start)]"
+            <v-row
+                :style="`height: ${Math.min(intervalHeight, 23)}px`"
+                class="blue darken-2 px-1"
+                no-gutters
             >
-              <div
-                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
-                  class="blue darken-2"
-              >
-                <v-spacer />
-                <p>Hello</p>
-              </div>
-              <div>
-                Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
-              </div>
-              <div>
-                End: {{e.end.format('YYYY-MM-DD HH:mm')}}
-              </div>
+              <v-spacer />
+              <v-icon
+                  color="black"
+                  small
+                  v-text="'close'"
+              />
+            </v-row>
+            <div>
+              Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
             </div>
-
+            <div>
+              End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+            </div>
           </div>
-        </template>
-      </v-calendar>
-    </div>
+
+        </div>
+      </template>
+    </v-calendar>
   </div>
 </template>
 
