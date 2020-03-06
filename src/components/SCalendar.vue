@@ -38,17 +38,7 @@
                   class="success darken-2 px-1"
                   no-gutters
                   style="cursor: grab"
-              >
-                <v-spacer />
-                <v-icon
-                    @mousedown.prevent.stop
-                    color="black"
-                    small
-                    style="cursor: default"
-                    v-if="!dragging"
-                    v-text="'close'"
-                />
-              </v-row>
+              />
               <!-- BODY -->
               <div>
                 <div>
