@@ -1,67 +1,119 @@
 <template>
-  <div>
-    <v-calendar
-        :end="end.format('YYYY-MM-DD')"
-        :event-ripple="false"
-        :events="eventsContainers"
-        :first-interval="firstInterval"
-        :interval-count="intervalCount"
-        :interval-height="intervalHeight"
-        :interval-minutes="intervalMinutes"
-        :short-intervals="false"
-        :start="start.format('YYYY-MM-DD')"
-        event-color="transparent"
-        locale="fr"
-        type="custom-daily"
-    >
-      <template #event="{event}">
-        <div
-            @mousedown.prevent.stop
-            class="event-container"
-            style="position: relative; width: 100%; -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none; -o-user-select:none"
-        >
-
-          <!-- EVENTS -->
+  <div
+      @mouseup="onMouseUpOnPage"
+      class="grey lighten-3"
+      style="height: 100vh"
+  >
+    <v-sheet height="300px">
+      <v-calendar
+          :end="end.format('YYYY-MM-DD')"
+          :event-ripple="false"
+          :events="eventsContainers"
+          :first-interval="firstInterval"
+          :interval-count="intervalCount"
+          :interval-height="intervalHeight"
+          :interval-minutes="intervalMinutes"
+          :short-intervals="false"
+          :start="start.format('YYYY-MM-DD')"
+          event-color="transparent"
+          locale="fr"
+          type="custom-daily"
+      >
+        <template #event="{event, day}">
           <div
-              :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px`"
-              class="blue lighten-1 event"
-              style="position: absolute; left: 0; width: 100%; overflow: hidden"
-              v-for="e in events[date(event.start)]"
+              class="event-container"
+              style="position: relative; width: 100%; -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none; -o-user-select:none"
           >
-            <!-- HEADER -->
-            <v-row
-                :style="`height: ${Math.min(intervalHeight, 23)}px`"
-                class="blue darken-2 px-1"
-                no-gutters
-                style="cursor: grab"
+
+            <!-- GHOST -->
+            <div
+                :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px; opacity: ${0.4}`"
+                class="success lighten-1 event"
+                style="position: absolute; left: 0; width: 100%; overflow: hidden"
+                v-if="ghost && date(ghost.start) === day.date"
             >
-              <v-spacer />
-              <v-icon
-                  color="black"
-                  small
-                  v-text="'close'"
-              />
-            </v-row>
-            <!-- BODY -->
-            <div>
+              <!-- HEADER -->
+              <v-row
+                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
+                  class="success darken-2 px-1"
+                  no-gutters
+                  style="cursor: grab"
+              >
+                <v-spacer />
+                <v-icon
+                    @mousedown.prevent.stop
+                    color="black"
+                    small
+                    style="cursor: default"
+                    v-if="!dragging"
+                    v-text="'close'"
+                />
+              </v-row>
+              <!-- BODY -->
               <div>
-                Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
-              </div>
-              <div>
-                End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+                <div>
+                  Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
+                </div>
+                <div>
+                  End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
+                </div>
               </div>
             </div>
-          </div>
 
-        </div>
-      </template>
-    </v-calendar>
+            <!-- EVENTS / GHOSTS -->
+            <div
+                :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
+                class="blue lighten-1 event"
+                style="position: absolute; left: 0; width: 100%; overflow: hidden"
+                v-for="e in dragging ? ghosts[date(event.start)] : events[date(event.start)]"
+            >
+              <!-- HEADER -->
+              <v-row
+                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
+                  @mousedown="onDragEvent(e)"
+                  class="blue darken-2 px-1"
+                  no-gutters
+                  style="cursor: grab"
+              >
+                <v-spacer />
+                <v-icon
+                    @mousedown.prevent.stop
+                    color="black"
+                    small
+                    style="cursor: default"
+                    v-if="!dragging"
+                    v-text="'close'"
+                />
+              </v-row>
+              <!-- BODY -->
+              <div>
+                <div>
+                  Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
+                </div>
+                <div>
+                  End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+                </div>
+              </div>
+            </div>
+
+            <div
+                :style="`top: ${(interval - 1) * intervalHeight}px; height: ${intervalHeight}px; cursor: ${dragging ? 'grabbing' : 'default'}; opacity: 0.4`"
+                @mouseenter="onMouseEntersIntervalOfDate(interval - 1, day.date)"
+                @mouseup="onMouseUpOnIntervalOfDate(interval - 1, day.date)"
+                class="transparent"
+                style="position: absolute; width: 100%"
+                v-for="interval in intervalCount"
+            />
+
+          </div>
+        </template>
+      </v-calendar>
+    </v-sheet>
   </div>
 </template>
 
 <script>
 	import moment from 'moment'
-	import 'jquery-ui-dist/jquery-ui'
 
 	export default {
 		name: 's-calendar',
@@ -78,30 +130,10 @@
 						end: '0000-01-01 00:00'
 					}
 				],
-				events: {
-					'2020-03-04': [
-						{
-							start: moment('2020-03-04 01:30'),
-							end: moment('2020-03-04 04:30')
-						},
-						{
-							start: moment('2020-03-04 04:30'),
-							end: moment('2020-03-04 05:30')
-						}
-					],
-					'2020-03-05': [
-						{
-							start: moment('2020-03-05 05:30'),
-							end: moment('2020-03-05 09:48')
-						}
-					],
-					'2020-03-07': [
-						{
-							start: moment('2020-03-05 01:30'),
-							end: moment('2020-03-05 04:23')
-						}
-					]
-				}
+				dragging: false,
+				ghost: null,
+				ghosts: {},
+				events: {}
 			}
 		},
 
@@ -123,6 +155,53 @@
 		},
 
 		methods: {
+			onDragEvent(event) {
+				this.dragging = true
+				this.ghost = {
+					start: moment(event.start),
+					end: moment(event.end)
+				}
+				this.ghosts[this.date(this.ghost.start)] = this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end))
+			},
+			onMouseEntersIntervalOfDate(interval, date) {
+				if (this.dragging) {
+					const start = moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
+					const end = moment(start).add(this.duration(this.ghost))
+					this.ghost = {
+						start,
+						end
+					}
+				}
+			},
+			onMouseUpOnIntervalOfDate() {
+				if (this.dragging) {
+					this.events = Object.assign({}, this.ghosts)
+					this.events[this.date(this.ghost.start)] = [...(this.events[this.date(this.ghost.start)] || []), this.ghost]
+					this.onMouseUpOnPage()
+				}
+			},
+			onMouseUpOnPage() {
+				if (this.dragging) {
+					this.dragging = false
+					Object.entries(this.events).forEach(([date, events]) => {
+						this.ghosts[date] = events.map(event => {
+							return {
+								start: moment(event.start),
+								end: moment(event.end)
+							}
+						})
+					})
+					this.ghost = null
+				}
+			},
+
+
+			print(event) {
+				console.log([event.start.format('YYYY-MM-DD HH:mm'), event.end.format('YYYY-MM-DD HH:mm'), this.duration(event).asMinutes()].join(' | '))
+			},
+			duration(event) {
+				return moment.duration(event.end.diff(event.start))
+			},
 			date(m) {
 				return moment(m).format('YYYY-MM-DD')
 			},
@@ -135,7 +214,7 @@
 						hours: event.start.hours(),
 						minutes: event.start.minutes()
 					}).asMinutes() - this.firstInterval * this.intervalMinutes + 1),
-					h: this.minutesToPixels(moment.duration(moment(event.end).diff(event.start)).asMinutes()) - 1
+					h: this.minutesToPixels(moment.duration(event.end.diff(event.start)).asMinutes()) - 1
 				}
 			},
 			createEventsContainers() {
@@ -151,6 +230,35 @@
 						start,
 						end
 					})
+					this.ghosts = {
+						'2020-03-04': [
+							{
+								start: moment('2020-03-04 01:30'),
+								end: moment('2020-03-04 04:30')
+							},
+							{
+								start: moment('2020-03-04 04:30'),
+								end: moment('2020-03-04 05:30')
+							},
+							{
+								start: moment('2020-03-04 05:30'),
+								end: moment('2020-03-04 08:07')
+							}
+						],
+						'2020-03-05': [
+							{
+								start: moment('2020-03-05 05:30'),
+								end: moment('2020-03-05 09:48')
+							}
+						],
+						'2020-03-07': [
+							{
+								start: moment('2020-03-07 01:30'),
+								end: moment('2020-03-07 04:23')
+							}
+						]
+					}
+					this.events = Object.assign({}, this.ghosts)
 				}
 			}
 		}
