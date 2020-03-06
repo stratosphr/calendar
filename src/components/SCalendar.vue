@@ -16,8 +16,9 @@
     >
       <template #event="{event}">
         <div
+            @mousedown.prevent.stop
             class="event-container"
-            style="position: relative; width: 100%"
+            style="position: relative; width: 100%; -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none; -o-user-select:none"
         >
 
           <!-- EVENTS -->
@@ -27,10 +28,12 @@
               style="position: absolute; left: 0; width: 100%; overflow: hidden"
               v-for="e in events[date(event.start)]"
           >
+            <!-- HEADER -->
             <v-row
                 :style="`height: ${Math.min(intervalHeight, 23)}px`"
                 class="blue darken-2 px-1"
                 no-gutters
+                style="cursor: grab"
             >
               <v-spacer />
               <v-icon
@@ -39,11 +42,14 @@
                   v-text="'close'"
               />
             </v-row>
+            <!-- BODY -->
             <div>
-              Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
-            </div>
-            <div>
-              End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+              <div>
+                Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
+              </div>
+              <div>
+                End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+              </div>
             </div>
           </div>
 
@@ -164,5 +170,6 @@
     padding: 0 !important;
     border: 0 solid !important;
     border-radius: 0 !important;
+    cursor: default !important;
   }
 </style>
