@@ -4,7 +4,7 @@
       class="grey lighten-3"
       style="height: 100vh"
   >
-    <v-sheet height="300px">
+    <v-sheet height="600px">
       <v-calendar
           :end="end.format('YYYY-MM-DD')"
           :event-ripple="false"
@@ -95,6 +95,7 @@
               </div>
             </div>
 
+            <!-- INTERVALS -->
             <div
                 :style="`top: ${(interval - 1) * intervalHeight}px; height: ${intervalHeight}px; cursor: ${dragging ? 'grabbing' : 'default'}; opacity: 0.4`"
                 @mouseenter="onMouseEntersIntervalOfDate(interval - 1, day.date)"
