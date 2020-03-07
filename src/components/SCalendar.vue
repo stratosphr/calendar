@@ -27,19 +27,19 @@
 
             <!-- GHOST -->
             <div
-                :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px; opacity: ${0.4}`"
-                class="success lighten-1 event"
-                style="position: absolute; left: 0; width: 100%; overflow: hidden"
+                :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px`"
+                class="success lighten-1"
+                style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
                 v-if="ghost && date(ghost.start) === day.date"
             >
               <!-- HEADER -->
               <v-row
-                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
-                  class="success darken-2 px-1"
+                  :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
+                  class="success darken-2 px-1 elevation-2"
                   no-gutters
               />
               <!-- BODY -->
-              <div>
+              <div class="pa-1 fill-height">
                 <div>
                   Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
                 </div>
@@ -52,15 +52,15 @@
             <!-- EVENTS / GHOSTS -->
             <div
                 :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
-                class="blue lighten-2 event"
-                style="position: absolute; left: 0; width: 100%; overflow: hidden"
+                class="blue lighten-2"
+                style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
                 v-for="e in dragging ? ghosts[date(event.start)] : events[date(event.start)]"
             >
               <!-- HEADER -->
               <v-row
-                  :style="`height: ${Math.min(intervalHeight, 23)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
+                  :style="`height: ${Math.min(intervalHeight - 1, 22)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
                   @mousedown="onDragEvent(e)"
-                  class="blue darken-2 px-1"
+                  class="blue darken-2 px-1 elevation-2"
                   no-gutters
               >
                 <v-spacer />
@@ -85,7 +85,7 @@
                 </div>
               </v-row>
               <!-- BODY -->
-              <div>
+              <div class="pa-1 fill-height">
                 <div>
                   Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
                 </div>
@@ -119,8 +119,8 @@
 
 		data() {
 			return {
-				intervalHeight: 20,
-				intervalMinutes: 30,
+				intervalHeight: 40,
+				intervalMinutes: 15,
 				firstInterval: 3,
 				intervalCount: 24,
 				eventsContainers: [
@@ -226,8 +226,8 @@
 					y: this.minutesToPixels(moment.duration({
 						hours: event.start.hours(),
 						minutes: event.start.minutes()
-					}).asMinutes() - this.firstInterval * this.intervalMinutes + 1),
-					h: this.minutesToPixels(moment.duration(event.end.diff(event.start)).asMinutes()) - 1
+					}).asMinutes() - this.firstInterval * this.intervalMinutes) + 2,
+					h: this.minutesToPixels(moment.duration(event.end.diff(event.start)).asMinutes()) - 3
 				}
 			},
 			createEventsContainers() {
@@ -284,7 +284,6 @@
   /*noinspection CssUnusedSymbol*/
   .v-event-timed-container {
     margin-right: 0 !important;
-    margin-top: -1px !important;
   }
 
   /*noinspection CssUnusedSymbol*/
