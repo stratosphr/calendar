@@ -32,6 +32,8 @@
                 style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
                 v-if="ghost && date(ghost.start) === day.date"
             >
+              <!-- RESIZER -->
+              <div style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize" />
               <!-- HEADER -->
               <v-row
                   :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
@@ -47,19 +49,21 @@
                   End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
                 </div>
               </div>
+              <!-- RESIZER -->
+              <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
             </div>
 
             <!-- EVENTS / GHOSTS -->
             <div
-                :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
+                :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging || resizing ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
                 class="blue lighten-2"
                 style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
-                v-for="e in dragging ? ghosts[date(event.start)] : events[date(event.start)]"
+                v-for="e in dragging || resizing ? ghosts[date(event.start)] : events[date(event.start)]"
             >
               <!-- RESIZER -->
               <div
-                  class="red"
-                  style="position: absolute; height: 4px; top: 0; width: 100%; cursor: row-resize"
+                  @mousedown="onResizeEvent(e, 'top')"
+                  style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize"
                   v-if="!e.locked"
               />
               <!-- HEADER -->
@@ -91,7 +95,7 @@
                 </div>
               </v-row>
               <!-- BODY -->
-              <div class="pa-1 orange fill-height">
+              <div class="pa-1 fill-height">
                 <div>
                   Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
                 </div>
@@ -101,15 +105,15 @@
               </div>
               <!-- RESIZER -->
               <div
-                  class="red"
-                  style="position: absolute; height: 4px; bottom: 0; width: 100%; cursor: row-resize"
+                  @mousedown="onResizeEvent(e, 'bottom')"
+                  style="position: absolute; bottom: 0; height: 6px; width: 100%; cursor: row-resize"
                   v-if="!e.locked"
               />
             </div>
 
             <!-- INTERVALS -->
             <div
-                :style="`top: ${(interval - 1) * intervalHeight}px; height: ${intervalHeight}px; cursor: ${dragging ? 'grabbing' : 'default'}; opacity: 0.4`"
+                :style="`top: ${(interval - 1) * intervalHeight}px; height: ${intervalHeight}px; cursor: ${dragging ? 'grabbing' : resizing ? 'row-resize' : 'default'}; opacity: 0.4`"
                 @mouseenter="onMouseEntersIntervalOfDate(interval - 1, day.date)"
                 @mouseup="onMouseUpOnIntervalOfDate(interval - 1, day.date)"
                 class="transparent"
@@ -132,7 +136,7 @@
 
 		data() {
 			return {
-				intervalHeight: 20,
+				intervalHeight: 30,
 				intervalMinutes: 15,
 				firstInterval: 3,
 				intervalCount: 4 * 24 - 3,
@@ -143,6 +147,8 @@
 					}
 				],
 				dragging: false,
+				resizing: false,
+				resizeHandlerPosition: null,
 				ghost: null,
 				ghosts: {},
 				events: {}
@@ -177,26 +183,46 @@
 					this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 				}
 			},
-			onMouseEntersIntervalOfDate(interval, date) {
-				if (this.dragging) {
-					const start = moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
-					const end = moment(start).add(this.duration(this.ghost))
+			onResizeEvent(event, handler) {
+				if (!event.locked) {
+					this.resizing = true
+					this.resizeHandlerPosition = handler
 					this.ghost = {
-						start,
-						end
+						start: moment(event.start),
+						end: moment(event.end)
+					}
+					this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
+				}
+			},
+			onMouseEntersIntervalOfDate(interval, date) {
+				let start, end
+				if (this.dragging || this.resizing) {
+					if (this.dragging) {
+						start = moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
+						end = moment(start).add(this.duration(this.ghost))
+					} else if (this.resizing) {
+						start = this.resizeHandlerPosition === 'top' ? moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes}) : moment(this.ghost.start)
+						end = this.resizeHandlerPosition === 'top' ? moment(this.ghost.end) : moment(date).add({minutes: (interval + 1) * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
+					}
+					if (end.isAfter(start)) {
+						this.ghost = {
+							start,
+							end
+						}
 					}
 				}
 			},
 			onMouseUpOnIntervalOfDate() {
-				if (this.dragging) {
+				if (this.dragging || this.resizing) {
 					this.events = Object.assign({}, this.ghosts)
 					this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
 					this.onMouseUpOnPage()
 				}
 			},
 			onMouseUpOnPage() {
-				if (this.dragging) {
+				if (this.dragging || this.resizing) {
 					this.dragging = false
+					this.resizing = false
 					this.ghost = null
 					this.updateGhosts()
 				}
@@ -259,13 +285,13 @@
 					this.ghosts = {
 						'2020-03-04': [
 							{
-								start: moment('2020-03-04 01:30'),
-								end: moment('2020-03-04 04:30'),
+								start: moment('2020-03-04 00:45'),
+								end: moment('2020-03-04 02:30'),
 								locked: true
 							},
 							{
-								start: moment('2020-03-04 04:30'),
-								end: moment('2020-03-04 05:30')
+								start: moment('2020-03-04 02:30'),
+								end: moment('2020-03-04 03:30')
 							},
 							{
 								start: moment('2020-03-04 05:30'),
