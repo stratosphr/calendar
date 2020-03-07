@@ -70,15 +70,15 @@
                 >
                   <v-icon
                       :color="e.locked ? 'error lighten-2' : 'success lighten-2'"
+                      :size="Math.min(intervalHeight - 1, 22) / 1.3"
                       @click="onLockEventClicked(e)"
-                      small
                       style="cursor: default"
                       v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
                   />
                   <v-icon
+                      :size="Math.min(intervalHeight - 1, 22) / 1.3"
                       @click="onRemoveEventClicked(e)"
                       color="white"
-                      small
                       style="cursor: default"
                       v-text="'mdi-close'"
                   />
@@ -119,10 +119,10 @@
 
 		data() {
 			return {
-				intervalHeight: 40,
+				intervalHeight: 20,
 				intervalMinutes: 15,
 				firstInterval: 3,
-				intervalCount: 24,
+				intervalCount: 4 * 24 - 3,
 				eventsContainers: [
 					{
 						start: '0000-01-01 00:00',
