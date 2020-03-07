@@ -52,7 +52,7 @@
             <!-- EVENTS / GHOSTS -->
             <div
                 :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
-                class="blue lighten-1 event"
+                class="blue lighten-2 event"
                 style="position: absolute; left: 0; width: 100%; overflow: hidden"
                 v-for="e in dragging ? ghosts[date(event.start)] : events[date(event.start)]"
             >
@@ -70,14 +70,14 @@
                 >
                   <v-icon
                       @click="onLockEventClicked(e)"
-                      color="black"
+                      :color="e.locked ? 'error lighten-2' : 'success lighten-2'"
                       style="cursor: default"
                       v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
-                      x-small
+                      small
                   />
                   <v-icon
                       @click="onRemoveEventClicked(e)"
-                      color="black"
+                      color="white"
                       small
                       style="cursor: default"
                       v-text="'mdi-close'"
