@@ -67,7 +67,8 @@
               >
                 <v-spacer />
                 <v-icon
-                    @mousedown.prevent.stop
+                    @click="onRemoveEventClicked(e)"
+                    @mousedown.stop
                     color="black"
                     small
                     style="cursor: default"
@@ -151,7 +152,7 @@
 					start: moment(event.start),
 					end: moment(event.end)
 				}
-				this.ghosts[this.date(this.ghost.start)] = this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end))
+				this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 			},
 			onMouseEntersIntervalOfDate(interval, date) {
 				if (this.dragging) {
@@ -166,23 +167,30 @@
 			onMouseUpOnIntervalOfDate() {
 				if (this.dragging) {
 					this.events = Object.assign({}, this.ghosts)
-					this.events[this.date(this.ghost.start)] = [...(this.events[this.date(this.ghost.start)] || []), this.ghost]
+					this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
 					this.onMouseUpOnPage()
 				}
 			},
 			onMouseUpOnPage() {
 				if (this.dragging) {
 					this.dragging = false
-					Object.entries(this.events).forEach(([date, events]) => {
-						this.ghosts[date] = events.map(event => {
-							return {
-								start: moment(event.start),
-								end: moment(event.end)
-							}
-						})
-					})
 					this.ghost = null
+					this.updateGhosts()
 				}
+			},
+			onRemoveEventClicked(event) {
+				this.$set(this.events, this.date(event.start), this.events[this.date(event.start)].filter(e => !e.start.isSame(event.start) || !e.end.isSame(event.end)))
+				this.updateGhosts()
+			},
+			updateGhosts() {
+				Object.entries(this.events).forEach(([date, events]) => {
+					this.$set(this.ghosts, date, events.map(event => {
+						return {
+							start: moment(event.start),
+							end: moment(event.end)
+						}
+					}))
+				})
 			},
 
 
