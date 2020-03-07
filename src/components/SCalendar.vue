@@ -206,11 +206,21 @@
 						end = this.resizeHandlerPosition === 'top' ? moment(this.ghost.end) : moment(this.date(this.ghost.end)).add({minutes: (interval + 1) * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
 					}
 					if (end.isAfter(start)) {
-						this.ghost = {
+						const scheduling = this.ghostsScheduler({
 							start,
 							end
-						}
+						}, this.ghosts)
+						this.ghost = scheduling.ghost
+						this.ghosts = scheduling.ghosts
 					}
+				}
+			},
+			ghostsScheduler(ghost, ghosts) {
+				const scheduledGhost = ghost
+				const scheduledGhosts = ghosts
+				return {
+					ghost: scheduledGhost,
+					ghosts: scheduledGhosts
 				}
 			},
 			onMouseUpOnIntervalOfDate() {
