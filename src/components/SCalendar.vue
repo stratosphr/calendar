@@ -160,6 +160,7 @@
 		},
 
 		mounted() {
+			console.clear()
 			this.createEventsContainers()
 		},
 
