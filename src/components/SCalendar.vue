@@ -69,11 +69,11 @@
                     v-if="!dragging"
                 >
                   <v-icon
-                      @click="onLockEventClicked(e)"
                       :color="e.locked ? 'error lighten-2' : 'success lighten-2'"
+                      @click="onLockEventClicked(e)"
+                      small
                       style="cursor: default"
                       v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
-                      small
                   />
                   <v-icon
                       @click="onRemoveEventClicked(e)"
