@@ -105,9 +105,9 @@
               </div>
               <!-- RESIZER -->
               <div
+                  :style="`cursor: ${e.locked ? 'not-allowed' : 'row-resize'}`"
                   @mousedown="onResizeEvent(e, 'bottom')"
-                  style="position: absolute; bottom: 0; height: 6px; width: 100%; cursor: row-resize"
-                  v-if="!e.locked"
+                  style="position: absolute; bottom: 0; height: 6px; width: 100%"
               />
             </div>
 
@@ -136,7 +136,7 @@
 
 		data() {
 			return {
-				intervalHeight: 30,
+				intervalHeight: 45,
 				intervalMinutes: 15,
 				firstInterval: 3,
 				intervalCount: 4 * 24 - 3,
@@ -201,8 +201,8 @@
 						start = moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
 						end = moment(start).add(this.duration(this.ghost))
 					} else if (this.resizing) {
-						start = this.resizeHandlerPosition === 'top' ? moment(date).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes}) : moment(this.ghost.start)
-						end = this.resizeHandlerPosition === 'top' ? moment(this.ghost.end) : moment(date).add({minutes: (interval + 1) * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
+						start = this.resizeHandlerPosition === 'top' ? moment(this.date(this.ghost.start)).add({minutes: interval * this.intervalMinutes + this.firstInterval * this.intervalMinutes}) : moment(this.ghost.start)
+						end = this.resizeHandlerPosition === 'top' ? moment(this.ghost.end) : moment(this.date(this.ghost.end)).add({minutes: (interval + 1) * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
 					}
 					if (end.isAfter(start)) {
 						this.ghost = {
