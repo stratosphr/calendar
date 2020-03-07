@@ -37,7 +37,6 @@
                   :style="`height: ${Math.min(intervalHeight, 23)}px`"
                   class="success darken-2 px-1"
                   no-gutters
-                  style="cursor: grab"
               />
               <!-- BODY -->
               <div>
@@ -59,22 +58,31 @@
             >
               <!-- HEADER -->
               <v-row
-                  :style="`height: ${Math.min(intervalHeight, 23)}px`"
+                  :style="`height: ${Math.min(intervalHeight, 23)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
                   @mousedown="onDragEvent(e)"
                   class="blue darken-2 px-1"
                   no-gutters
-                  style="cursor: grab"
               >
                 <v-spacer />
-                <v-icon
-                    @click="onRemoveEventClicked(e)"
+                <div
                     @mousedown.stop
-                    color="black"
-                    small
-                    style="cursor: default"
                     v-if="!dragging"
-                    v-text="'close'"
-                />
+                >
+                  <v-icon
+                      @click="onLockEventClicked(e)"
+                      color="black"
+                      style="cursor: default"
+                      v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
+                      x-small
+                  />
+                  <v-icon
+                      @click="onRemoveEventClicked(e)"
+                      color="black"
+                      small
+                      style="cursor: default"
+                      v-text="'mdi-close'"
+                  />
+                </div>
               </v-row>
               <!-- BODY -->
               <div>
@@ -147,12 +155,14 @@
 
 		methods: {
 			onDragEvent(event) {
-				this.dragging = true
-				this.ghost = {
-					start: moment(event.start),
-					end: moment(event.end)
+				if (!event.locked) {
+					this.dragging = true
+					this.ghost = {
+						start: moment(event.start),
+						end: moment(event.end)
+					}
+					this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 				}
-				this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 			},
 			onMouseEntersIntervalOfDate(interval, date) {
 				if (this.dragging) {
@@ -178,6 +188,10 @@
 					this.updateGhosts()
 				}
 			},
+			onLockEventClicked(event) {
+				this.$set(event, 'locked', !event.locked)
+				this.updateGhosts()
+			},
 			onRemoveEventClicked(event) {
 				this.$set(this.events, this.date(event.start), this.events[this.date(event.start)].filter(e => !e.start.isSame(event.start) || !e.end.isSame(event.end)))
 				this.updateGhosts()
@@ -186,6 +200,7 @@
 				Object.entries(this.events).forEach(([date, events]) => {
 					this.$set(this.ghosts, date, events.map(event => {
 						return {
+							locked: event.locked,
 							start: moment(event.start),
 							end: moment(event.end)
 						}
@@ -232,7 +247,8 @@
 						'2020-03-04': [
 							{
 								start: moment('2020-03-04 01:30'),
-								end: moment('2020-03-04 04:30')
+								end: moment('2020-03-04 04:30'),
+								locked: true
 							},
 							{
 								start: moment('2020-03-04 04:30'),
