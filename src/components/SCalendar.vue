@@ -56,6 +56,12 @@
                 style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
                 v-for="e in dragging ? ghosts[date(event.start)] : events[date(event.start)]"
             >
+              <!-- RESIZER -->
+              <div
+                  class="red"
+                  style="position: absolute; height: 4px; top: 0; width: 100%; cursor: row-resize"
+                  v-if="!e.locked"
+              />
               <!-- HEADER -->
               <v-row
                   :style="`height: ${Math.min(intervalHeight - 1, 22)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
@@ -85,7 +91,7 @@
                 </div>
               </v-row>
               <!-- BODY -->
-              <div class="pa-1 fill-height">
+              <div class="pa-1 orange fill-height">
                 <div>
                   Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
                 </div>
@@ -93,6 +99,12 @@
                   End: {{e.end.format('YYYY-MM-DD HH:mm')}}
                 </div>
               </div>
+              <!-- RESIZER -->
+              <div
+                  class="red"
+                  style="position: absolute; height: 4px; bottom: 0; width: 100%; cursor: row-resize"
+                  v-if="!e.locked"
+              />
             </div>
 
             <!-- INTERVALS -->
@@ -261,6 +273,10 @@
 							}
 						],
 						'2020-03-05': [
+							{
+								start: moment('2020-03-05 01:15'),
+								end: moment('2020-03-05 01:30')
+							},
 							{
 								start: moment('2020-03-05 05:30'),
 								end: moment('2020-03-05 09:48')
