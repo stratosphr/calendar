@@ -166,7 +166,7 @@
 
 		computed: {
 			start() {
-				return moment().weekday() !== 6 ? moment().startOf('week') : moment().endOf('week').add({days: 1})
+				return moment().weekday() !== 6 ? moment().startOf('week') : moment().endOf('week').add({days: 1}).startOf('day')
 			},
 			end() {
 				return moment(this.start).add(5, 'days')
