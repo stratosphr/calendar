@@ -48,6 +48,9 @@
                 <div>
                   End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
                 </div>
+                <div>
+                  Duration: {{duration(ghost).hours()}}h {{duration(ghost).minutes()}}min
+                </div>
               </div>
               <!-- RESIZER -->
               <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
@@ -101,6 +104,9 @@
                 </div>
                 <div>
                   End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+                </div>
+                <div>
+                  Duration: {{duration(e).hours()}}h {{duration(e).minutes()}}min
                 </div>
               </div>
               <!-- RESIZER -->
