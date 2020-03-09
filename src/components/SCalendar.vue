@@ -26,96 +26,102 @@
           >
 
             <!-- GHOST -->
-            <div
-                :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px`"
-                class="success lighten-1"
-                style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
-                v-if="ghost && date(ghost.start) === day.date"
-            >
-              <!-- RESIZER -->
-              <div style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize" />
-              <!-- HEADER -->
-              <v-row
-                  :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
-                  class="success darken-2 px-1 elevation-2"
-                  no-gutters
-              />
-              <!-- BODY -->
-              <div class="pa-1 fill-height">
-                <div>
-                  Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
+            <v-fade-transition>
+              <div
+                  :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px`"
+                  class="success lighten-1"
+                  style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
+                  v-if="ghost && date(ghost.start) === day.date"
+              >
+                <!-- RESIZER -->
+                <div style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize" />
+                <!-- HEADER -->
+                <v-row
+                    :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
+                    class="success darken-2 px-1 elevation-2"
+                    no-gutters
+                />
+                <!-- BODY -->
+                <div class="pa-1 fill-height">
+                  <div>
+                    Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    Duration: {{duration(ghost).hours()}}h {{duration(ghost).minutes()}}min
+                  </div>
                 </div>
-                <div>
-                  End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
-                </div>
-                <div>
-                  Duration: {{duration(ghost).hours()}}h {{duration(ghost).minutes()}}min
-                </div>
+                <!-- RESIZER -->
+                <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
               </div>
-              <!-- RESIZER -->
-              <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
-            </div>
+            </v-fade-transition>
 
             <!-- EVENTS / GHOSTS -->
-            <div
-                :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging || resizing ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
-                class="blue lighten-2"
-                style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
+            <v-fade-transition
+                appear
                 v-for="e in dragging || resizing ? ghosts[date(event.start)] : events[date(event.start)]"
             >
-              <!-- RESIZER -->
               <div
-                  @mousedown="onResizeEvent(e, 'top')"
-                  style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize"
-                  v-if="!e.locked"
-              />
-              <!-- HEADER -->
-              <v-row
-                  :style="`height: ${Math.min(intervalHeight - 1, 22)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
-                  @mousedown="onDragEvent(e)"
-                  class="blue darken-2 px-1 elevation-2"
-                  no-gutters
+                  :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging || resizing ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
+                  class="blue lighten-2"
+                  style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
               >
-                <v-spacer />
+                <!-- RESIZER -->
                 <div
-                    @mousedown.stop
-                    v-if="!dragging"
+                    @mousedown="onResizeEvent(e, 'top')"
+                    style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize"
+                    v-if="!e.locked"
+                />
+                <!-- HEADER -->
+                <v-row
+                    :style="`height: ${Math.min(intervalHeight - 1, 22)}px; cursor: ${e.locked ? 'not-allowed': 'grab'}`"
+                    @mousedown="onDragEvent(e)"
+                    class="blue darken-2 px-1 elevation-2"
+                    no-gutters
                 >
-                  <v-icon
-                      :color="e.locked ? 'error lighten-2' : 'success lighten-2'"
-                      :size="Math.min(intervalHeight - 1, 22) / 1.3"
-                      @click="onLockEventClicked(e)"
-                      style="cursor: default"
-                      v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
-                  />
-                  <v-icon
-                      :size="Math.min(intervalHeight - 1, 22) / 1.3"
-                      @click="onRemoveEventClicked(e)"
-                      color="white"
-                      style="cursor: default"
-                      v-text="'mdi-close'"
-                  />
+                  <v-spacer />
+                  <div
+                      @mousedown.stop
+                      v-if="!dragging"
+                  >
+                    <v-icon
+                        :color="e.locked ? 'error lighten-2' : 'success lighten-2'"
+                        :size="Math.min(intervalHeight - 1, 22) / 1.3"
+                        @click="onLockEventClicked(e)"
+                        style="cursor: default"
+                        v-text="e.locked ? 'mdi-lock' : 'mdi-lock-open'"
+                    />
+                    <v-icon
+                        :size="Math.min(intervalHeight - 1, 22) / 1.3"
+                        @click="onRemoveEventClicked(e)"
+                        color="white"
+                        style="cursor: default"
+                        v-text="'mdi-close'"
+                    />
+                  </div>
+                </v-row>
+                <!-- BODY -->
+                <div class="pa-1 fill-height">
+                  <div>
+                    Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    End: {{e.end.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    Duration: {{duration(e).hours()}}h {{duration(e).minutes()}}min
+                  </div>
                 </div>
-              </v-row>
-              <!-- BODY -->
-              <div class="pa-1 fill-height">
-                <div>
-                  Start: {{e.start.format('YYYY-MM-DD HH:mm')}}
-                </div>
-                <div>
-                  End: {{e.end.format('YYYY-MM-DD HH:mm')}}
-                </div>
-                <div>
-                  Duration: {{duration(e).hours()}}h {{duration(e).minutes()}}min
-                </div>
+                <!-- RESIZER -->
+                <div
+                    :style="`cursor: ${e.locked ? 'not-allowed' : 'row-resize'}`"
+                    @mousedown="onResizeEvent(e, 'bottom')"
+                    style="position: absolute; bottom: 0; height: 6px; width: 100%"
+                />
               </div>
-              <!-- RESIZER -->
-              <div
-                  :style="`cursor: ${e.locked ? 'not-allowed' : 'row-resize'}`"
-                  @mousedown="onResizeEvent(e, 'bottom')"
-                  style="position: absolute; bottom: 0; height: 6px; width: 100%"
-              />
-            </div>
+            </v-fade-transition>
 
             <!-- INTERVALS -->
             <div
@@ -142,7 +148,7 @@
 
 		data() {
 			return {
-				intervalHeight: 45,
+				intervalHeight: 15,
 				intervalMinutes: 15,
 				firstInterval: 3,
 				intervalCount: 4 * 24 - 3,
@@ -302,13 +308,17 @@
 					this.ghosts = {
 						'2020-03-09': [
 							{
-								start: moment('2020-03-09 00:45'),
-								end: moment('2020-03-09 02:30'),
+								start: moment('2020-03-09 01:00'),
+								end: moment('2020-03-09 01:45'),
 								locked: false
 							},
 							{
-								start: moment('2020-03-09 02:30'),
-								end: moment('2020-03-09 03:30')
+								start: moment('2020-03-09 03:15'),
+								end: moment('2020-03-09 03:45')
+							},
+							{
+								start: moment('2020-03-09 03:00'),
+								end: moment('2020-03-09 03:15')
 							},
 							{
 								start: moment('2020-03-09 05:30'),
@@ -317,8 +327,8 @@
 						],
 						'2020-03-10': [
 							{
-								start: moment('2020-03-10 01:15'),
-								end: moment('2020-03-10 01:30'),
+								start: moment('2020-03-10 01:45'),
+								end: moment('2020-03-10 02:00'),
 								locked: true
 							},
 							{
