@@ -36,6 +36,13 @@
                   class="blue lighten-2"
                   style="position: absolute; left: 0; width: 100%; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
               >
+                <v-overlay
+                    :absolute="true"
+                    :value="(dragging || resizing) && e.locked === true"
+                    color="error"
+                    opacity="0.6"
+                >
+                </v-overlay>
                 <!-- RESIZER -->
                 <div
                     @mousedown="onResizeEvent(e, 'top')"
@@ -268,20 +275,20 @@
 				}
 			},
 			onMouseUpOnIntervalOfDate() {
-				if (this.dragging || this.resizing) {
-					this.events = this.cloneEvents(this.ghosts)
-					this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
-					this.onMouseUpOnPage()
+				if (this.dropAllowed) {
+					if (this.dragging || this.resizing) {
+						this.events = this.cloneEvents(this.ghosts)
+						this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
+						this.onMouseUpOnPage()
+					}
 				}
 			},
 			onMouseUpOnPage() {
-				if (this.dropAllowed) {
-					if (this.dragging || this.resizing) {
-						this.dragging = false
-						this.resizing = false
-						this.ghost = null
-						this.updateGhosts()
-					}
+				if (this.dragging || this.resizing) {
+					this.dragging = false
+					this.resizing = false
+					this.ghost = null
+					this.updateGhosts()
 				}
 			},
 			onLockEventClicked(event) {
