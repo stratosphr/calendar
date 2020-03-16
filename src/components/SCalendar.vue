@@ -25,39 +25,6 @@
               style="position: relative; width: 100%; -moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none; -o-user-select:none"
           >
 
-            <!-- GHOST -->
-            <v-fade-transition>
-              <div
-                  :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px`"
-                  class="success lighten-1"
-                  style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
-                  v-if="ghost && date(ghost.start) === day.date"
-              >
-                <!-- RESIZER -->
-                <div style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize" />
-                <!-- HEADER -->
-                <v-row
-                    :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
-                    class="success darken-2 px-1 elevation-2"
-                    no-gutters
-                />
-                <!-- BODY -->
-                <div class="pa-1 fill-height">
-                  <div>
-                    Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
-                  </div>
-                  <div>
-                    End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
-                  </div>
-                  <div>
-                    Duration: {{duration(ghost).hours()}}h {{duration(ghost).minutes()}}min
-                  </div>
-                </div>
-                <!-- RESIZER -->
-                <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
-              </div>
-            </v-fade-transition>
-
             <!-- EVENTS / GHOSTS -->
             <v-fade-transition
                 :key="eIndex"
@@ -124,6 +91,41 @@
               </div>
             </v-fade-transition>
 
+            <!-- GHOST -->
+            <v-fade-transition>
+              <div
+                  :class="dropAllowed ? 'success' : 'error'"
+                  :style="`top: ${eventGeometry(ghost).y}px; height: ${eventGeometry(ghost).h}px`"
+                  class="lighten-1"
+                  style="position: absolute; left: 0; width: 100%; opacity: 0.5; overflow: hidden; border-left: solid white thin !important; border-right: solid white thin !important"
+                  v-if="ghost && date(ghost.start) === day.date"
+              >
+                <!-- RESIZER -->
+                <div style="position: absolute; height: 6px; top: 0; width: 100%; cursor: row-resize" />
+                <!-- HEADER -->
+                <v-row
+                    :class="dropAllowed ? 'success' : 'error'"
+                    :style="`height: ${Math.min(intervalHeight - 1, 22)}px`"
+                    class="darken-2 px-1 elevation-2"
+                    no-gutters
+                />
+                <!-- BODY -->
+                <div class="pa-1 fill-height">
+                  <div>
+                    Start: {{ghost.start.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    End: {{ghost.end.format('YYYY-MM-DD HH:mm')}}
+                  </div>
+                  <div>
+                    Duration: {{duration(ghost).hours()}}h {{duration(ghost).minutes()}}min
+                  </div>
+                </div>
+                <!-- RESIZER -->
+                <div style="position: absolute; height: 6px; bottom: 0; width: 100%; cursor: row-resize" />
+              </div>
+            </v-fade-transition>
+
             <!-- INTERVALS -->
             <div
                 :style="`top: ${(interval - 1) * intervalHeight}px; height: ${intervalHeight}px; cursor: ${dragging ? 'grabbing' : resizing ? 'row-resize' : 'default'}; opacity: 0.4`"
@@ -160,6 +162,7 @@
 					}
 				],
 				dragging: false,
+				dropAllowed: true,
 				resizing: false,
 				resizeHandlerPosition: null,
 				ghost: null,
@@ -232,27 +235,38 @@
 			},
 			scheduleGhosts() {
 				this.ghosts = this.cloneEvents(this.tmpGhosts)
+				this.dropAllowed = true
 				const overlappingTmpGhostsBeforeGhost = (this.tmpGhosts[this.date(this.ghost.start)] || []).filter(tmpGhost => this.ghost.start.isAfter(tmpGhost.start) && tmpGhost.end.isAfter(this.ghost.start))
 				const firstOverlappingTmpGhostBeforeGhost = overlappingTmpGhostsBeforeGhost.find(tmpGhost => tmpGhost.start.isSame(moment.max(overlappingTmpGhostsBeforeGhost.map(tmpGhost => tmpGhost.start))))
 				const overlappingTmpGhostsAfterGhost = (this.tmpGhosts[this.date(this.ghost.start)] || []).filter(tmpGhost => this.ghost.start.isSameOrBefore(tmpGhost.start) && this.ghost.end.isAfter(tmpGhost.start))
 				const firstOverlappingTmpGhostAfterGhost = overlappingTmpGhostsAfterGhost.find(tmpGhost => tmpGhost.start.isSame(moment.min(overlappingTmpGhostsAfterGhost.map(tmpGhost => tmpGhost.start))))
+				// The ghost overlaps some event(s) starting before it
 				if (firstOverlappingTmpGhostBeforeGhost) {
 					const overlapDuration = moment.duration(firstOverlappingTmpGhostBeforeGhost.end.diff(this.ghost.start))
-					this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
-						if (ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start)) {
+					const ghostsBeforeGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start))
+					if (ghostsBeforeGhost.some(ghost => ghost.locked)) {
+						this.dropAllowed = false
+						console.error('Before: Drop forbidden !')
+					} else {
+						ghostsBeforeGhost.forEach(ghost => {
 							ghost.start = moment(ghost.start).subtract(overlapDuration)
 							ghost.end = moment(ghost.end).subtract(overlapDuration)
-						}
-					})
+						})
+					}
 				}
+				// The ghost overlaps some event(s) starting after it
 				if (firstOverlappingTmpGhostAfterGhost) {
 					const overlapDuration = moment.duration(this.ghost.end.diff(firstOverlappingTmpGhostAfterGhost.start))
-					this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
-						if (ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start)) {
+					const ghostsAfterGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start))
+					if (ghostsAfterGhost.some(ghost => ghost.locked)) {
+						this.dropAllowed = false
+						console.error('After: Drop forbidden !')
+					} else {
+						ghostsAfterGhost.forEach(ghost => {
 							ghost.start = moment(ghost.start).add(overlapDuration)
 							ghost.end = moment(ghost.end).add(overlapDuration)
-						}
-					})
+						})
+					}
 				}
 			},
 			onMouseUpOnIntervalOfDate() {
@@ -263,11 +277,13 @@
 				}
 			},
 			onMouseUpOnPage() {
-				if (this.dragging || this.resizing) {
-					this.dragging = false
-					this.resizing = false
-					this.ghost = null
-					this.updateGhosts()
+				if (this.dropAllowed) {
+					if (this.dragging || this.resizing) {
+						this.dragging = false
+						this.resizing = false
+						this.ghost = null
+						this.updateGhosts()
+					}
 				}
 			},
 			onLockEventClicked(event) {
@@ -289,7 +305,8 @@
 					events.forEach(event => {
 						clonedEvents[date].push({
 							start: moment(event.start),
-							end: moment(event.end)
+							end: moment(event.end),
+							locked: event.locked
 						})
 					})
 				})
@@ -351,7 +368,7 @@
 							},
 							{
 								start: moment('2020-03-16 05:30'),
-								end: moment('2020-03-16 08:07')
+								end: moment('2020-03-16 08:15')
 							}
 						],
 						'2020-03-17': [
@@ -362,13 +379,13 @@
 							},
 							{
 								start: moment('2020-03-17 05:30'),
-								end: moment('2020-03-17 09:48')
+								end: moment('2020-03-17 09:45')
 							}
 						],
 						'2020-03-18': [
 							{
 								start: moment('2020-03-18 01:30'),
-								end: moment('2020-03-18 04:23')
+								end: moment('2020-03-18 04:00')
 							}
 						]
 					}
