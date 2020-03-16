@@ -60,8 +60,9 @@
 
             <!-- EVENTS / GHOSTS -->
             <v-fade-transition
+                :key="eIndex"
                 appear
-                v-for="e in dragging || resizing ? ghosts[date(event.start)] : events[date(event.start)]"
+                v-for="(e, eIndex) in dragging || resizing ? ghosts[date(event.start)] : events[date(event.start)]"
             >
               <div
                   :style="`top: ${eventGeometry(e).y}px; height: ${eventGeometry(e).h}px; z-index: ${dragging || resizing ? 0 : 1}; opacity: ${dragging ? 0.4 : 1}`"
@@ -162,6 +163,7 @@
 				resizing: false,
 				resizeHandlerPosition: null,
 				ghost: null,
+				tmpGhosts: {},
 				ghosts: {},
 				events: {}
 			}
@@ -194,6 +196,7 @@
 						end: moment(event.end)
 					}
 					this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
+					this.$set(this.tmpGhosts, this.date(this.ghost.start), this.tmpGhosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 				}
 			},
 			onResizeEvent(event, handler) {
@@ -205,6 +208,7 @@
 						end: moment(event.end)
 					}
 					this.$set(this.ghosts, this.date(this.ghost.start), this.ghosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
+					this.$set(this.tmpGhosts, this.date(this.ghost.start), this.tmpGhosts[this.date(this.ghost.start)].filter(ghost => !ghost.start.isSame(this.ghost.start) || !ghost.end.isSame(this.ghost.end)))
 				}
 			},
 			onMouseEntersIntervalOfDate(interval, date) {
@@ -237,7 +241,7 @@
 			},
 			onMouseUpOnIntervalOfDate() {
 				if (this.dragging || this.resizing) {
-					this.events = Object.assign({}, this.ghosts)
+					this.events = this.cloneEvents(this.ghosts)
 					this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
 					this.onMouseUpOnPage()
 				}
@@ -259,15 +263,21 @@
 				this.updateGhosts()
 			},
 			updateGhosts() {
-				Object.entries(this.events).forEach(([date, events]) => {
-					this.$set(this.ghosts, date, events.map(event => {
-						return {
-							locked: event.locked,
+				this.ghosts = this.cloneEvents(this.events)
+				this.tmpGhosts = this.cloneEvents(this.ghosts)
+			},
+			cloneEvents(events) {
+				const clonedEvents = {}
+				Object.entries(events).forEach(([date, events]) => {
+					clonedEvents[date] = []
+					events.forEach(event => {
+						clonedEvents[date].push({
 							start: moment(event.start),
 							end: moment(event.end)
-						}
-					}))
+						})
+					})
 				})
+				return clonedEvents
 			},
 
 
@@ -306,44 +316,45 @@
 						end
 					})
 					this.ghosts = {
-						'2020-03-09': [
+						'2020-03-16': [
 							{
-								start: moment('2020-03-09 01:00'),
-								end: moment('2020-03-09 01:45'),
+								start: moment('2020-03-16 01:00'),
+								end: moment('2020-03-16 01:45'),
 								locked: false
 							},
 							{
-								start: moment('2020-03-09 03:15'),
-								end: moment('2020-03-09 03:45')
+								start: moment('2020-03-16 03:15'),
+								end: moment('2020-03-16 03:45')
 							},
 							{
-								start: moment('2020-03-09 03:00'),
-								end: moment('2020-03-09 03:15')
+								start: moment('2020-03-16 03:00'),
+								end: moment('2020-03-16 03:15')
 							},
 							{
-								start: moment('2020-03-09 05:30'),
-								end: moment('2020-03-09 08:07')
+								start: moment('2020-03-16 05:30'),
+								end: moment('2020-03-16 08:07')
 							}
 						],
-						'2020-03-10': [
+						'2020-03-17': [
 							{
-								start: moment('2020-03-10 01:45'),
-								end: moment('2020-03-10 02:00'),
+								start: moment('2020-03-17 01:45'),
+								end: moment('2020-03-17 02:00'),
 								locked: true
 							},
 							{
-								start: moment('2020-03-10 05:30'),
-								end: moment('2020-03-10 09:48')
+								start: moment('2020-03-17 05:30'),
+								end: moment('2020-03-17 09:48')
 							}
 						],
-						'2020-03-11': [
+						'2020-03-18': [
 							{
-								start: moment('2020-03-11 01:30'),
-								end: moment('2020-03-11 04:23')
+								start: moment('2020-03-18 01:30'),
+								end: moment('2020-03-18 04:23')
 							}
 						]
 					}
-					this.events = Object.assign({}, this.ghosts)
+					this.tmpGhosts = this.cloneEvents(this.ghosts)
+					this.events = this.cloneEvents(this.ghosts)
 				}
 			}
 		}
