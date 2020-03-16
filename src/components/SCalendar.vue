@@ -222,22 +222,36 @@
 						end = this.resizeHandlerPosition === 'top' ? moment(this.ghost.end) : moment(this.date(this.ghost.end)).add({minutes: (interval + 1) * this.intervalMinutes + this.firstInterval * this.intervalMinutes})
 					}
 					if (end.isAfter(start)) {
-						const scheduling = this.ghostsScheduler({
+						this.ghost = {
 							start,
 							end
-						}, this.ghosts)
-						this.ghost = scheduling.ghost
-						this.ghosts = scheduling.ghosts
+						}
+						this.scheduleGhosts()
 					}
 				}
 			},
-			ghostsScheduler(ghost, ghosts) {
-				const scheduledGhost = ghost
-				const scheduledGhosts = ghosts
-				return {
-					ghost: scheduledGhost,
-					ghosts: scheduledGhosts
-				}
+			scheduleGhosts() {
+				this.ghosts = this.cloneEvents(this.tmpGhosts);
+				(this.tmpGhosts[this.date(this.ghost.start)] || []).forEach(tmpGhost => {
+					if (this.ghost.start.isAfter(tmpGhost.start) && tmpGhost.end.isAfter(this.ghost.start)) {
+						const overlapDuration = moment.duration(tmpGhost.end.diff(this.ghost.start))
+						this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
+							if (ghost.start.isSameOrBefore(tmpGhost.start)) {
+								ghost.start = moment(ghost.start).subtract(overlapDuration)
+								ghost.end = moment(ghost.end).subtract(overlapDuration)
+							}
+						})
+					} else if (this.ghost.start.isSameOrBefore(tmpGhost.start) && this.ghost.end.isAfter(tmpGhost.start)) {
+						const overlapDuration = moment.duration(this.ghost.end.diff(tmpGhost.start))
+						console.log(overlapDuration.asMinutes())
+						this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
+							if (ghost.start.isSameOrAfter(tmpGhost.start)) {
+								ghost.start = moment(ghost.start).add(overlapDuration)
+								ghost.end = moment(ghost.end).add(overlapDuration)
+							}
+						})
+					}
+				})
 			},
 			onMouseUpOnIntervalOfDate() {
 				if (this.dragging || this.resizing) {
@@ -283,6 +297,9 @@
 
 			print(event) {
 				console.log([event.start.format('YYYY-MM-DD HH:mm'), event.end.format('YYYY-MM-DD HH:mm'), this.duration(event).asMinutes()].join(' | '))
+			},
+			areEventsOverlapping(event1, event2) {
+				return event1.start.isBetween(event2.start, event2.end, null, '[)') || event1.end.isBetween(event2.start, event2.end, null, '(]') || event2.start.isBetween(event1.start, event1.end, null, '[)') || event2.end.isBetween(event1.start, event1.end, null, '(]')
 			},
 			duration(event) {
 				return moment.duration(event.end.diff(event.start))
