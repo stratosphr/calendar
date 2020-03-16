@@ -246,7 +246,6 @@
 					const ghostsBeforeGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start))
 					if (ghostsBeforeGhost.some(ghost => ghost.locked)) {
 						this.dropAllowed = false
-						console.error('Before: Drop forbidden !')
 					} else {
 						ghostsBeforeGhost.forEach(ghost => {
 							ghost.start = moment(ghost.start).subtract(overlapDuration)
@@ -260,7 +259,6 @@
 					const ghostsAfterGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start))
 					if (ghostsAfterGhost.some(ghost => ghost.locked)) {
 						this.dropAllowed = false
-						console.error('After: Drop forbidden !')
 					} else {
 						ghostsAfterGhost.forEach(ghost => {
 							ghost.start = moment(ghost.start).add(overlapDuration)
