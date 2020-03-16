@@ -42,6 +42,14 @@
                     color="error"
                     opacity="0.6"
                 >
+                  <v-row
+                      align="center"
+                      justify="center"
+                  >
+                    <v-col cols="12">
+                      <v-icon v-text="'mdi-lock'" />
+                    </v-col>
+                  </v-row>
                 </v-overlay>
                 <!-- RESIZER -->
                 <div
