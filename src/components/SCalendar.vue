@@ -1,8 +1,12 @@
 <template>
   <div
+      @keydown.ctrl.89="onRedo"
+      @keydown.ctrl.90="onUndo"
       @mouseup="onMouseUpOnPage"
+      autofocus
       class="grey lighten-3"
       style="height: 100vh"
+      tabindex="-1"
   >
     <v-sheet height="600px">
       <v-calendar
@@ -166,7 +170,7 @@
 
 		data() {
 			return {
-				intervalHeight: 15,
+				intervalHeight: 20,
 				intervalMinutes: 15,
 				firstInterval: 3,
 				intervalCount: 4 * 24 - 3,
@@ -183,7 +187,9 @@
 				ghost: null,
 				tmpGhosts: {},
 				ghosts: {},
-				events: {}
+				events: {},
+				undoHistory: [],
+				redoHistory: []
 			}
 		},
 
@@ -285,6 +291,7 @@
 			onMouseUpOnIntervalOfDate() {
 				if (this.dropAllowed) {
 					if (this.dragging || this.resizing) {
+						this.undoHistory.push(this.cloneEvents(this.events))
 						this.events = this.cloneEvents(this.ghosts)
 						this.$set(this.events, this.date(this.ghost.start), [...(this.events[this.date(this.ghost.start)] || []), this.ghost])
 						this.onMouseUpOnPage()
@@ -306,6 +313,22 @@
 			onRemoveEventClicked(event) {
 				this.$set(this.events, this.date(event.start), this.events[this.date(event.start)].filter(e => !e.start.isSame(event.start) || !e.end.isSame(event.end)))
 				this.updateGhosts()
+			},
+			onUndo() {
+				const previousEvents = this.undoHistory.pop()
+				if (previousEvents) {
+					this.redoHistory.push(this.events)
+					this.events = this.cloneEvents(previousEvents)
+					this.updateGhosts()
+				}
+			},
+			onRedo() {
+				const nextEvents = this.redoHistory.pop()
+				if (nextEvents) {
+					this.undoHistory.push(this.events)
+					this.events = this.cloneEvents(nextEvents)
+					this.updateGhosts()
+				}
 			},
 			updateGhosts() {
 				this.ghosts = this.cloneEvents(this.events)
