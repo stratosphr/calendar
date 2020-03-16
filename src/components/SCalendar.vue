@@ -231,27 +231,29 @@
 				}
 			},
 			scheduleGhosts() {
-				this.ghosts = this.cloneEvents(this.tmpGhosts);
-				(this.tmpGhosts[this.date(this.ghost.start)] || []).forEach(tmpGhost => {
-					if (this.ghost.start.isAfter(tmpGhost.start) && tmpGhost.end.isAfter(this.ghost.start)) {
-						const overlapDuration = moment.duration(tmpGhost.end.diff(this.ghost.start))
-						this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
-							if (ghost.start.isSameOrBefore(tmpGhost.start)) {
-								ghost.start = moment(ghost.start).subtract(overlapDuration)
-								ghost.end = moment(ghost.end).subtract(overlapDuration)
-							}
-						})
-					} else if (this.ghost.start.isSameOrBefore(tmpGhost.start) && this.ghost.end.isAfter(tmpGhost.start)) {
-						const overlapDuration = moment.duration(this.ghost.end.diff(tmpGhost.start))
-						console.log(overlapDuration.asMinutes())
-						this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
-							if (ghost.start.isSameOrAfter(tmpGhost.start)) {
-								ghost.start = moment(ghost.start).add(overlapDuration)
-								ghost.end = moment(ghost.end).add(overlapDuration)
-							}
-						})
-					}
-				})
+				this.ghosts = this.cloneEvents(this.tmpGhosts)
+				const overlappingTmpGhostsBeforeGhost = (this.tmpGhosts[this.date(this.ghost.start)] || []).filter(tmpGhost => this.ghost.start.isAfter(tmpGhost.start) && tmpGhost.end.isAfter(this.ghost.start))
+				const firstOverlappingTmpGhostBeforeGhost = overlappingTmpGhostsBeforeGhost.find(tmpGhost => tmpGhost.start.isSame(moment.max(overlappingTmpGhostsBeforeGhost.map(tmpGhost => tmpGhost.start))))
+				const overlappingTmpGhostsAfterGhost = (this.tmpGhosts[this.date(this.ghost.start)] || []).filter(tmpGhost => this.ghost.start.isSameOrBefore(tmpGhost.start) && this.ghost.end.isAfter(tmpGhost.start))
+				const firstOverlappingTmpGhostAfterGhost = overlappingTmpGhostsAfterGhost.find(tmpGhost => tmpGhost.start.isSame(moment.min(overlappingTmpGhostsAfterGhost.map(tmpGhost => tmpGhost.start))))
+				if (firstOverlappingTmpGhostBeforeGhost) {
+					const overlapDuration = moment.duration(firstOverlappingTmpGhostBeforeGhost.end.diff(this.ghost.start))
+					this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
+						if (ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start)) {
+							ghost.start = moment(ghost.start).subtract(overlapDuration)
+							ghost.end = moment(ghost.end).subtract(overlapDuration)
+						}
+					})
+				}
+				if (firstOverlappingTmpGhostAfterGhost) {
+					const overlapDuration = moment.duration(this.ghost.end.diff(firstOverlappingTmpGhostAfterGhost.start))
+					this.ghosts[this.date(this.ghost.start)].forEach(ghost => {
+						if (ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start)) {
+							ghost.start = moment(ghost.start).add(overlapDuration)
+							ghost.end = moment(ghost.end).add(overlapDuration)
+						}
+					})
+				}
 			},
 			onMouseUpOnIntervalOfDate() {
 				if (this.dragging || this.resizing) {
