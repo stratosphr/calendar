@@ -172,8 +172,8 @@
 			return {
 				intervalHeight: 20,
 				intervalMinutes: 15,
-				firstInterval: 3,
-				intervalCount: 4 * 24 - 3,
+				firstInterval: 5,
+				intervalCount: 4 * 8 - 5,
 				eventsContainers: [
 					{
 						start: '0000-01-01 00:00',
@@ -264,11 +264,12 @@
 				// The ghost overlaps some event(s) starting before it
 				if (firstOverlappingTmpGhostBeforeGhost) {
 					const overlapDuration = moment.duration(firstOverlappingTmpGhostBeforeGhost.end.diff(this.ghost.start))
-					const ghostsBeforeGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start))
-					if (ghostsBeforeGhost.some(ghost => ghost.locked)) {
-						this.dropAllowed = false
-					} else {
-						ghostsBeforeGhost.forEach(ghost => {
+					const ghostsToUpdate = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start))
+					const ghostToUpdateWithMinStart = ghostsToUpdate.find(ghost => ghost.start.isSame(moment.min(ghostsToUpdate.map(ghost => ghost.start))))
+					const ghostToEarly = moment(this.date(this.ghost)).add({minutes: this.firstInterval * this.intervalMinutes}).isAfter(moment(ghostToUpdateWithMinStart.start).subtract(overlapDuration))
+					this.dropAllowed = !ghostsToUpdate.some(ghost => ghost.locked) && !ghostToEarly
+					if (this.dropAllowed) {
+						ghostsToUpdate.forEach(ghost => {
 							ghost.start = moment(ghost.start).subtract(overlapDuration)
 							ghost.end = moment(ghost.end).subtract(overlapDuration)
 						})
@@ -277,11 +278,12 @@
 				// The ghost overlaps some event(s) starting after it
 				if (firstOverlappingTmpGhostAfterGhost) {
 					const overlapDuration = moment.duration(this.ghost.end.diff(firstOverlappingTmpGhostAfterGhost.start))
-					const ghostsAfterGhost = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start))
-					if (ghostsAfterGhost.some(ghost => ghost.locked)) {
-						this.dropAllowed = false
-					} else {
-						ghostsAfterGhost.forEach(ghost => {
+					const ghostsToUpdate = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start))
+					const ghostToUpdateWithMaxEnd = ghostsToUpdate.find(ghost => ghost.end.isSame(moment.max(ghostsToUpdate.map(ghost => ghost.end))))
+					const ghostToLate = moment(this.date(this.ghost)).add({minutes: (this.firstInterval + this.intervalCount) * this.intervalMinutes}).isBefore(moment(ghostToUpdateWithMaxEnd.end).add(overlapDuration))
+					this.dropAllowed = this.dropAllowed && !ghostsToUpdate.some(ghost => ghost.locked) && !ghostToLate
+					if (this.dropAllowed) {
+						ghostsToUpdate.forEach(ghost => {
 							ghost.start = moment(ghost.start).add(overlapDuration)
 							ghost.end = moment(ghost.end).add(overlapDuration)
 						})
@@ -416,8 +418,20 @@
 								locked: true
 							},
 							{
-								start: moment('2020-03-17 05:30'),
-								end: moment('2020-03-17 09:45')
+								start: moment('2020-03-17 02:30'),
+								end: moment('2020-03-17 03:00')
+							},
+							{
+								start: moment('2020-03-17 03:15'),
+								end: moment('2020-03-17 04:30')
+							},
+							{
+								start: moment('2020-03-17 05:00'),
+								end: moment('2020-03-17 06:45')
+							},
+							{
+								start: moment('2020-03-17 06:45'),
+								end: moment('2020-03-17 07:30')
 							}
 						],
 						'2020-03-18': [
