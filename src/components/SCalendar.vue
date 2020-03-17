@@ -266,7 +266,7 @@
 					const overlapDuration = moment.duration(firstOverlappingTmpGhostBeforeGhost.end.diff(this.ghost.start))
 					const ghostsToUpdate = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrBefore(firstOverlappingTmpGhostBeforeGhost.start))
 					const ghostToUpdateWithMinStart = ghostsToUpdate.find(ghost => ghost.start.isSame(moment.min(ghostsToUpdate.map(ghost => ghost.start))))
-					const ghostToEarly = moment(this.date(this.ghost)).add({minutes: this.firstInterval * this.intervalMinutes}).isAfter(moment(ghostToUpdateWithMinStart.start).subtract(overlapDuration))
+					const ghostToEarly = moment(this.date(this.ghost.start)).add({minutes: this.firstInterval * this.intervalMinutes}).isAfter(moment(ghostToUpdateWithMinStart.start).subtract(overlapDuration))
 					this.dropAllowed = !ghostsToUpdate.some(ghost => ghost.locked) && !ghostToEarly
 					if (this.dropAllowed) {
 						ghostsToUpdate.forEach(ghost => {
@@ -280,7 +280,7 @@
 					const overlapDuration = moment.duration(this.ghost.end.diff(firstOverlappingTmpGhostAfterGhost.start))
 					const ghostsToUpdate = this.ghosts[this.date(this.ghost.start)].filter(ghost => ghost.start.isSameOrAfter(firstOverlappingTmpGhostAfterGhost.start))
 					const ghostToUpdateWithMaxEnd = ghostsToUpdate.find(ghost => ghost.end.isSame(moment.max(ghostsToUpdate.map(ghost => ghost.end))))
-					const ghostToLate = moment(this.date(this.ghost)).add({minutes: (this.firstInterval + this.intervalCount) * this.intervalMinutes}).isBefore(moment(ghostToUpdateWithMaxEnd.end).add(overlapDuration))
+					const ghostToLate = moment(ghostToUpdateWithMaxEnd.end).add(overlapDuration).isAfter(moment(this.date(this.ghost.start)).add({minutes: (this.firstInterval + this.intervalCount) * this.intervalMinutes}))
 					this.dropAllowed = this.dropAllowed && !ghostsToUpdate.some(ghost => ghost.locked) && !ghostToLate
 					if (this.dropAllowed) {
 						ghostsToUpdate.forEach(ghost => {
@@ -394,7 +394,7 @@
 					this.ghosts = {
 						'2020-03-16': [
 							{
-								start: moment('2020-03-16 01:00'),
+								start: moment('2020-03-16 01:15'),
 								end: moment('2020-03-16 01:45'),
 								locked: false
 							},
@@ -408,7 +408,7 @@
 							},
 							{
 								start: moment('2020-03-16 05:30'),
-								end: moment('2020-03-16 08:15')
+								end: moment('2020-03-16 07:45')
 							}
 						],
 						'2020-03-17': [
