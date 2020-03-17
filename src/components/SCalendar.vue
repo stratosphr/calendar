@@ -307,10 +307,12 @@
 				}
 			},
 			onLockEventClicked(event) {
+				this.undoHistory.push(this.cloneEvents(this.events))
 				this.$set(event, 'locked', !event.locked)
 				this.updateGhosts()
 			},
 			onRemoveEventClicked(event) {
+				this.undoHistory.push(this.cloneEvents(this.events))
 				this.$set(this.events, this.date(event.start), this.events[this.date(event.start)].filter(e => !e.start.isSame(event.start) || !e.end.isSame(event.end)))
 				this.updateGhosts()
 			},
